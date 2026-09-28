@@ -4,7 +4,7 @@
 
 - **Infisical**: OSS secret store, web dashboard, API, machine identities, and audit interface.
 - **Public HTTPS endpoint**: Lets owner and agents reach the service from any computer. The endpoint is internet-reachable; the dashboard still requires authentication.
-- **Cloudflare Access**: Protects the browser-facing dashboard with an allowlisted email one-time PIN or an identity provider with MFA. Keep API clients on Infisical's own machine-identity authentication path.
+- **Infisical MFA**: Protects the owner dashboard with email-based 2FA or a mobile authenticator. Agent APIs use Infisical machine-identity authentication. Cloudflare Tunnel is an optional public ingress path, not an extra login gate.
 - **PostgreSQL**: Persistent backing store for Infisical. It must be backed up and restored together with the encryption and auth configuration.
 - **Agent identities**: One persistent machine identity per agent/workstation. It authenticates through Universal Auth and receives an API access token with a configured TTL.
 
@@ -15,8 +15,9 @@ flowchart LR
   A[Agent on any computer] -->|Client ID + client secret| I[Infisical Universal Auth]
   I -->|Short-lived API access token| A
   A -->|Read/manage permitted project data| P[Public HTTPS Infisical API]
-  U[Owner browser] -->|Email OTP or IdP MFA| C[Cloudflare Access]
-  C --> D[Infisical Dashboard]
+  U[Owner browser] -->|Email code or authenticator 2FA| D[Infisical Dashboard]
+  T[Public HTTPS hostname / optional Cloudflare Tunnel] --> P
+  T --> D
   P --> DB[(Persistent PostgreSQL)]
   D --> DB
   P --> L[Audit events and telemetry]
@@ -34,7 +35,7 @@ flowchart LR
 
 ## Access roles
 
-The user requested persistent agent management access, including APIs, dashboard administration, and telemetry from anywhere. Each agent therefore needs its own named machine identity with the management permissions it actually uses. The owner account remains the recovery path and uses 2FA for interactive dashboard login.
+The user requested persistent agent management access, including APIs, dashboard administration, and telemetry from anywhere. Each agent therefore needs its own named machine identity with the management permissions it actually uses. The owner account remains the recovery path and uses 2FA for interactive dashboard login. Agent API calls use the machine identity; they do not stop for an OTP on each call.
 
 If an agent needs full project-admin permissions, treat its persistent machine-identity secret as an admin password: it can change the store's access and secrets. Revoking that identity must be an available, documented operation. Do not put its client secret in GitHub, task transcripts, or a shared `.env`.
 

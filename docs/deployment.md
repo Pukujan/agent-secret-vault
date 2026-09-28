@@ -2,7 +2,7 @@
 
 ## Current state
 
-This repository does not contain a live service or a deployment secret. Hosting requires a persistent host, a public HTTPS hostname, and owner-controlled Cloudflare configuration. A sleeping/free host may delay the first request; a powered-off home PC makes the service unavailable until it is started.
+This repository does not contain a live service or a deployment secret. Hosting requires a persistent host and a public HTTPS hostname. A sleeping/free host may delay the first request; a powered-off home PC makes the service unavailable until it is started.
 
 ## Service foundation
 
@@ -16,17 +16,17 @@ Official deployment entry points:
 
 ## Public access layout
 
-1. Put the Infisical web service behind a TLS-terminating public HTTPS endpoint.
-2. Require Cloudflare Access for the dashboard/browser login, limited to the owner's email. Use email one-time PIN for low friction, or an identity provider with MFA.
-3. Permit agent API requests to the public HTTPS app endpoint using each agent's Infisical machine identity. The application API still validates the identity and its assigned project/organization permissions.
+1. Put the Infisical web/API service behind a TLS-terminating public HTTPS endpoint.
+2. Enable Infisical account 2FA for the owner using email code or a mobile authenticator. Agents use their own machine identities for API requests; they do not need an interactive MFA prompt for every call.
+3. If hosting from a home PC, Cloudflare Tunnel can publish the HTTPS hostname without opening inbound router ports. The tunnel provides reachability; Infisical still handles authentication.
 4. Do not publish database or Redis ports.
 5. Turn on the dashboard's audit logging and periodically inspect access events.
 
-Cloudflare's public app pattern provides a public hostname with Access login in front. Its email PIN is single-use and expires after 10 minutes. The delayed-agent workflow should request approval only once the task is running, not when it enters a queue.
+The delayed-agent workflow uses its persistent machine identity when the task starts, so no short-lived human code is requested while the job waits in a queue. Human MFA is for the owner's interactive dashboard session.
 
 ## Required runtime values
 
-Generate unique production values for Infisical's `ENCRYPTION_KEY`, `AUTH_SECRET`, PostgreSQL password, public `SITE_URL`, and the Cloudflare tunnel token. Keep them in the deployment provider's secret settings or a local untracked `.env`. Never commit populated values.
+Generate unique production values for Infisical's `ENCRYPTION_KEY`, `AUTH_SECRET`, PostgreSQL password, public `SITE_URL`, and (if used) the Cloudflare tunnel token. Keep them in the deployment provider's secret settings or a local untracked `.env`. Never commit populated values.
 
 Infisical's official `.env.example` contains sample keys and explicitly warns not to use them in production. This repo intentionally does not copy those sample values into a production `.env`.
 

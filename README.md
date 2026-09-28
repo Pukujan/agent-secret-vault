@@ -6,7 +6,7 @@ Public source and agent guide for a remotely reachable, self-hosted secret store
 
 Use [Infisical](https://github.com/Infisical/infisical) as the secret store, dashboard, API, machine-identity manager, and audit interface. This repository documents the deployment and the access contract for your agents instead of reimplementing those systems.
 
-The management dashboard is reached through a public HTTPS URL and protected by an owner login with 2FA (email one-time code through Cloudflare Access is the lowest-friction starting point). Agent API access uses a persistent machine identity. Its client secret is the long-lived credential; Infisical exchanges it for API access tokens and renews those as configured. Keep one identity per agent so one agent can be revoked or rotated without changing every machine.
+The management dashboard is reached through a public HTTPS URL and protected by Infisical's owner login with 2FA (email code or a mobile authenticator). Agent API access uses a persistent machine identity. Its client secret is the long-lived credential; the agent exchanges it for API access tokens according to the identity's configured TTL. Keep one identity per agent so one agent can be revoked or rotated without changing every machine. A Cloudflare Tunnel can provide the public hostname from a home PC without opening router ports; the service remains publicly reachable and Infisical handles authentication.
 
 ## Intended workflow
 
@@ -34,4 +34,4 @@ The management dashboard is reached through a public HTTPS URL and protected by 
 
 ## Status
 
-Repository scaffold is ready. A live vault is not deployed yet: it needs a host with persistent PostgreSQL storage, a public HTTPS hostname, and Cloudflare Access/2FA configuration. Do not put those deployment credentials in this public repository.
+Repository scaffold is ready. A live vault is not deployed yet: it needs a host with persistent PostgreSQL storage and a public HTTPS hostname. Do not put deployment credentials in this public repository.
